@@ -1,62 +1,42 @@
-import { Separator } from "@heroui/react";
+import React from "react";
+import { Button } from "@heroui/react";
 
-const Banner = () => {
+export default function Banner() {
   return (
-    <div className="bg-[url('/assets/banner.png')] text-white  flex justify-between flex-col items-center  gap-5 h-150">
-      <div className="p-10 text-center flex justify-center flex-col items-center gap-3.5 flex-1">
-        <h1 className="text-7xl">
-          Discover Your <br /> Next Adventure
+    <section className="relative h-[85vh] flex items-center justify-center text-center px-6 overflow-hidden">
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 scale-105"
+        style={{ backgroundImage: "url('/assets/banner.png')" }}
+      >
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center max-w-6xl animate-in fade-in slide-in-from-bottom-12 duration-1000">
+        <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-7xl md:text-8xl drop-shadow-2xl font-serif">
+          Discover Your <br className="hidden sm:block" /> Next Adventure
         </h1>
 
-        <p className="text-2xl">
+        <p className="max-w-2xl mb-12 text-lg font-medium text-white/90 sm:text-xl md:text-2xl drop-shadow-lg">
           Explore breathtaking destinations and create unforgettable memories
           with our curated travel experiences.
         </p>
 
-        <div className="flex gap-5">
-          <button className="uppercase bg-cyan-500 px-5 py-3 cursor-pointer">
-            Explore Now
-          </button>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Button
+            size="lg"
+            className="bg-[#12a8bc] text-white font-bold px-10 rounded-full h-16 shadow-xl shadow-[#12a8bc]/20 hover:bg-cyan-400 transition-all hover:scale-105"
+          >
+            EXPLORE NOW →
+          </Button>
 
-          <button className="uppercase px-5 py-3 bg-white/50 cursor-pointer">
-            View Destination
-          </button>
+          <Button
+            size="lg"
+            className="px-10 font-bold text-white rounded-full bg-white/20 backdrop-blur-md border border-white/30 hover:bg-white/30 h-16 transition-all hover:scale-105"
+          >
+            VIEW DESTINATIONS
+          </Button>
         </div>
       </div>
-
-      <div className=" bg-white/30 flex justify-between gap-5 w-full items-center">
-        <div className="px-3">
-          <h3 className="text-sm">Location</h3>
-          <p className="text-xs">Address, City or Zip</p>
-        </div>
-
-        <Separator variant="tertiary" orientation="vertical" />
-
-        <div>
-          <h3 className="text-sm">Date/Duration</h3>
-          <p className="text-xs">Anytime/3 Days</p>
-        </div>
-
-        <Separator variant="tertiary" orientation="vertical" />
-
-        <div>
-          <h3 className="text-sm">Budget</h3>
-          <p className="text-xs">$0-$3000</p>
-        </div>
-
-        <Separator variant="tertiary" orientation="vertical" />
-
-        <div>
-          <h3 className="text-sm">People</h3>
-          <p className="text-xs">5-10</p>
-        </div>
-
-        <div className="bg-cyan-500 py-2 px-4">
-          <h3>Search</h3>
-        </div>
-      </div>
-    </div>
+    </section>
   );
-};
-
-export default Banner;
+}

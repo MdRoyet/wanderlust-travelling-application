@@ -9,6 +9,7 @@ export default function Destinations() {
   const [loading, setLoading] = useState(true);
   const scrollContainerRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Only show the first 5 for the featured section
   const featuredOnly = destinations.slice(0, 5);
@@ -25,6 +26,25 @@ export default function Destinations() {
         setLoading(false);
       });
   }, []);
+
+  // Auto-scroll logic
+  useEffect(() => {
+    if (loading || featuredOnly.length === 0 || isPaused) return;
+
+    const interval = setInterval(() => {
+      if (currentIndex < featuredOnly.length) {
+        scrollRight();
+      } else {
+        // Loop back to start
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
+          setCurrentIndex(1);
+        }
+      }
+    }, 5000); // Scroll every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [loading, featuredOnly.length, currentIndex, isPaused]);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -60,7 +80,11 @@ export default function Destinations() {
   if (destinations.length === 0) return null;
 
   return (
-    <section className="w-full py-24 bg-white animate-in fade-in slide-in-from-bottom-10 duration-1000">
+    <section 
+      className="w-full py-24 bg-white animate-in fade-in slide-in-from-bottom-10 duration-1000"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       <div className="px-4 mx-auto max-w-[100rem] sm:px-8">
         {/* Header Section */}
         <div className="flex flex-col items-start justify-between gap-8 mb-16 md:flex-row md:items-end">

@@ -3,6 +3,7 @@ import Link from "next/link";
 
 export default function DestinationCard({ destination }) {
   const {
+    _id,
     destinationName,
     country,
     price,
@@ -92,7 +93,7 @@ export default function DestinationCard({ destination }) {
         </p>
 
         <Link
-          href={`/destinations/${destinationName.toLowerCase().replace(/\s+/g, "-")}`}
+          href={`/destinations/${_id}`}
           className="inline-flex items-center gap-1 mt-4 text-sm font-extrabold transition-all text-[#12a8bc] hover:text-cyan-700 w-fit group/link"
         >
           <span className="border-b-2 border-transparent group-hover/link:border-[#12a8bc] pb-0.5 transition-all uppercase tracking-wider">

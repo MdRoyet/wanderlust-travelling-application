@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Button,
   Input,
@@ -16,15 +17,18 @@ import {
 
 export default function DestinationDetails({ params }) {
   const { id } = use(params);
+  const router = useRouter();
   const [destination, setDestination] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Custom Modal State (Stable alternative to avoid library errors)
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
-  // Edit Form State
+  // Form/Action State
   const [formData, setFormData] = useState({});
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchDestination();
@@ -55,7 +59,7 @@ export default function DestinationDetails({ params }) {
 
       if (response.ok) {
         await fetchDestination();
-        setIsModalOpen(false); // Close popup
+        setIsModalOpen(false);
       } else {
         alert("Failed to update destination");
       }
@@ -63,6 +67,27 @@ export default function DestinationDetails({ params }) {
       console.error("Update error:", error);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`http://localhost:5000/destinations/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        router.push("/destinations"); // Redirect back to explore
+      } else {
+        alert("Failed to delete destination");
+        setDeleting(false);
+        setIsDeleteModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      setDeleting(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -140,23 +165,20 @@ export default function DestinationDetails({ params }) {
         
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 flex flex-col gap-24">
-          
-          {/* 1. Description */}
           <div className="flex flex-col gap-10">
             <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-300 uppercase">Description</h2>
-            <p className="text-3xl text-slate-700 leading-relaxed font-serif italic">
-              "{description || "Experience the breathtaking beauty and unique culture of this incredible destination. From stunning landscapes to hidden gems, this experience is curated for those who seek the extraordinary."}"
+            <p className="text-3xl text-slate-700 leading-relaxed font-serif italic italic font-medium">
+              "{description || "Experience the breathtaking beauty and unique culture of this incredible destination."}"
             </p>
           </div>
 
-          {/* 2. Realistic Itinerary */}
           <div className="flex flex-col gap-12">
             <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-300 uppercase">The Itinerary</h2>
             <div className="flex flex-col gap-0">
               {[
-                { day: "01", title: "Arrival & Sunset Welcome", desc: "Arrive at the international airport where our private shuttle will greet you. Check into your luxury suite and enjoy a welcome dinner overlooking the horizon." },
-                { day: "02", title: "Local Discovery & Hidden Gems", desc: "A guided walking tour through the historic districts, visiting local artisans and tasting authentic regional delicacies away from the crowds." },
-                { day: "03", title: "Adventure & Farewell", desc: "Choose between a sunrise hike or a morning coastal cruise. Spend the afternoon at leisure before a private farewell ceremony in the evening." }
+                { day: "01", title: "Arrival & Sunset Welcome", desc: "Arrive at the international airport where our private shuttle will greet you." },
+                { day: "02", title: "Local Discovery & Hidden Gems", desc: "A guided walking tour through the historic districts." },
+                { day: "03", title: "Adventure & Farewell", desc: "Choose between a sunrise hike or a morning coastal cruise." }
               ].map((item, idx) => (
                 <div key={idx} className="group flex gap-8 pb-12 last:pb-0 border-l-2 border-slate-100 pl-8 relative ml-3">
                   <div className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-white border-2 border-slate-200 group-hover:border-[#12a8bc] group-hover:bg-[#12a8bc] transition-all"></div>
@@ -172,11 +194,11 @@ export default function DestinationDetails({ params }) {
 
           <div className="h-px bg-slate-100 w-full"></div>
 
-          {/* 3. Trip Highlights Grid */}
+          {/* Highlights Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { label: "Weather", value: "24°C / 75°F" },
-              { label: "Language", value: "English / Local" },
+              { label: "Language", value: "English" },
               { label: "Best Time", value: "May - Sept" },
               { label: "Activity", value: "Moderate" }
             ].map((stat, i) => (
@@ -187,16 +209,13 @@ export default function DestinationDetails({ params }) {
             ))}
           </div>
 
-          {/* 4. Realistic Reviews Section */}
+          {/* Reviews */}
           <div className="flex flex-col gap-12 bg-slate-50 p-12 rounded-[2rem]">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">Guest Reviews</h2>
-              <button className="text-[10px] font-black text-[#12a8bc] tracking-widest uppercase border-b-2 border-[#12a8bc] pb-1">View All</button>
-            </div>
+            <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">Guest Reviews</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {[
-                { name: "Sarah J.", city: "New York", text: "An absolutely transformative experience. The attention to detail in the itinerary was flawless. Will definitely book again!", rating: 5 },
-                { name: "Marc K.", city: "Berlin", text: "Luxury meets authenticity. We saw things we never would have found on our own. Truly world-class service.", rating: 5 }
+                { name: "Sarah J.", city: "New York", text: "An absolutely transformative experience. Will definitely book again!", rating: 5 },
+                { name: "Marc K.", city: "Berlin", text: "Luxury meets authenticity. Truly world-class service.", rating: 5 }
               ].map((rev, i) => (
                 <div key={i} className="flex flex-col gap-4">
                   <div className="flex gap-1 text-yellow-400">
@@ -213,7 +232,7 @@ export default function DestinationDetails({ params }) {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: STICKY BOOKING */}
+        {/* RIGHT COLUMN: STICKY SIDEBAR */}
         <div className="lg:col-span-1">
           <div className="sticky top-32 p-12 border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] bg-white flex flex-col gap-10 rounded-[2.5rem]">
             <div className="flex flex-col gap-2">
@@ -231,13 +250,16 @@ export default function DestinationDetails({ params }) {
             </div>
 
             {/* Admin Management Section */}
-            <div className="pt-8 border-t border-slate-50 flex flex-col gap-4">
-               <span className="text-[9px] font-black tracking-[0.3em] text-slate-300 uppercase text-center mb-1">Administrative Controls</span>
+            <div className="pt-8 border-t border-slate-50 flex flex-col gap-4 text-center">
+               <span className="text-[9px] font-black tracking-[0.3em] text-slate-300 uppercase mb-1">Administrative Controls</span>
                <div className="grid grid-cols-2 gap-4">
                  <button onClick={() => setIsModalOpen(true)} className="py-4 px-4 bg-slate-50 text-slate-500 text-[9px] font-black tracking-widest uppercase hover:bg-slate-900 hover:text-white transition-all border border-slate-100">
                    EDIT INFO
                  </button>
-                 <button className="py-4 px-4 bg-red-50 text-red-500 text-[9px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all border border-red-50">
+                 <button 
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="py-4 px-4 bg-red-50 text-red-500 text-[9px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all border border-red-50"
+                 >
                    DELETE
                  </button>
                </div>
@@ -257,7 +279,7 @@ export default function DestinationDetails({ params }) {
         </div>
       </section>
 
-      {/* CUSTOM EDIT POPUP (Stable & Functioning) */}
+      {/* EDIT MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
@@ -266,7 +288,6 @@ export default function DestinationDetails({ params }) {
               <h2 className="text-4xl font-serif text-slate-900">Edit Destination</h2>
               <p className="text-slate-400 font-medium">Refine the details for {destinationName}</p>
             </header>
-
             <div className="flex flex-col gap-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2">
               <div className="grid grid-cols-2 gap-6">
                 <Input label="Name" value={formData.destinationName || ""} onChange={e => setFormData({...formData, destinationName: e.target.value})} variant="bordered" />
@@ -304,17 +325,51 @@ export default function DestinationDetails({ params }) {
                 />
               </div>
             </div>
-
             <footer className="flex gap-4 justify-end pt-8 border-t border-slate-50">
               <Button onClick={() => setIsModalOpen(false)} variant="light" className="font-bold">Cancel</Button>
               <Button 
                 onClick={handleUpdate} 
                 isLoading={updating}
-                className="bg-[#12a8bc] text-white font-black tracking-widest px-10 rounded-full h-14 shadow-xl shadow-cyan-500/20"
+                className="bg-[#12a8bc] text-white font-black tracking-widest px-10 rounded-full h-14"
               >
                 SAVE CHANGES
               </Button>
             </footer>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM DELETE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsDeleteModalOpen(false)}></div>
+          <div className="relative w-full max-w-lg bg-white rounded-[2rem] p-12 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col items-center text-center gap-8">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              <h2 className="text-3xl font-serif text-slate-900 leading-tight">Delete Trip?</h2>
+              <p className="text-slate-500 font-medium px-4">
+                Are you sure you want to permanently remove <span className="text-slate-900 font-bold italic">"{destinationName}"</span>? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 w-full">
+              <button 
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 py-4 text-xs font-black tracking-widest text-slate-400 hover:text-slate-900 transition-all uppercase order-2 sm:order-1"
+              >
+                KEEP IT
+              </button>
+              <button 
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-4 bg-red-600 text-white font-black tracking-[0.2em] text-[10px] rounded-full shadow-xl shadow-red-500/30 hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50 order-1 sm:order-2"
+              >
+                {deleting ? "DELETING..." : "YES, DELETE"}
+              </button>
+            </div>
           </div>
         </div>
       )}

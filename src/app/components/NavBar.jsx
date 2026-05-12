@@ -43,11 +43,11 @@ export default function NavBar() {
           </li>
           <li>
             <Link
-              color={pathname === "/admin" ? "primary" : "foreground"}
-              href="/admin"
-              className={`text-sm font-medium ${pathname === "/admin" ? "underline underline-offset-4 decoration-2" : ""}`}
+              color={pathname === "/add-destination" ? "primary" : "foreground"}
+              href="/add-destination"
+              className={`text-sm font-medium ${pathname === "/add-destination" ? "underline underline-offset-4 decoration-2" : ""}`}
             >
-              Admin
+              Add Destinations
             </Link>
           </li>
         </ul>

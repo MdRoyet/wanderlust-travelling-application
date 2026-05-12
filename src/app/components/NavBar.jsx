@@ -34,8 +34,8 @@ export default function NavBar() {
           </li>
           <li>
             <Link
-              color={pathname === "/bookings" ? "primary" : "foreground"}
-              href="/bookings"
+              color={pathname === "/my-bookings" ? "primary" : "foreground"}
+              href="/my-bookings"
               className={`text-sm font-medium ${pathname === "/bookings" ? "underline underline-offset-4 decoration-2" : ""}`}
             >
               My Bookings

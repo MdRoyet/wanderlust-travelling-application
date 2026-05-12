@@ -25,10 +25,14 @@ export default function DestinationDetails({ params }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
+  // Custom Success Popup State
+  const [showStatus, setShowStatus] = useState(null); // 'booking-success' | 'update-success' | 'delete-success' | null
+  
   // Form/Action State
   const [formData, setFormData] = useState({});
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [booking, setBooking] = useState(false);
 
   useEffect(() => {
     fetchDestination();
@@ -60,8 +64,10 @@ export default function DestinationDetails({ params }) {
       if (response.ok) {
         await fetchDestination();
         setIsModalOpen(false);
+        setShowStatus('update-success');
+        setTimeout(() => setShowStatus(null), 3000);
       } else {
-        alert("Failed to update destination");
+        alert("Failed to update details");
       }
     } catch (error) {
       console.error("Update error:", error);
@@ -78,7 +84,10 @@ export default function DestinationDetails({ params }) {
       });
 
       if (response.ok) {
-        router.push("/destinations"); // Redirect back to explore
+        setShowStatus('delete-success');
+        setTimeout(() => {
+          router.push("/destinations");
+        }, 2000);
       } else {
         alert("Failed to delete destination");
         setDeleting(false);
@@ -87,7 +96,40 @@ export default function DestinationDetails({ params }) {
     } catch (error) {
       console.error("Delete error:", error);
       setDeleting(false);
-      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleBooking = async () => {
+    setBooking(true);
+    const bookingData = {
+      destinationId: destination._id,
+      destinationName: destination.destinationName,
+      country: destination.country,
+      price: destination.price,
+      imageUrl: destination.imageUrl,
+      bookingDate: new Date().toISOString(),
+      status: "Confirmed"
+    };
+
+    try {
+      const response = await fetch(`http://localhost:5000/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (response.ok) {
+        setShowStatus('booking-success');
+        setTimeout(() => {
+          router.push("/my-bookings");
+        }, 2500);
+      } else {
+        alert("Reservation failed");
+        setBooking(false);
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      setBooking(false);
     }
   };
 
@@ -160,25 +202,26 @@ export default function DestinationDetails({ params }) {
         </div>
       </section>
 
-      {/* Main Layout Grid */}
+      {/* Main Layout */}
       <section className="max-w-[100rem] mx-auto px-6 md:px-24 py-32 grid grid-cols-1 lg:grid-cols-3 gap-24">
         
-        {/* LEFT COLUMN */}
+        {/* Left Column */}
         <div className="lg:col-span-2 flex flex-col gap-24">
           <div className="flex flex-col gap-10">
             <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-300 uppercase">Description</h2>
-            <p className="text-3xl text-slate-700 leading-relaxed font-serif italic italic font-medium">
+            <p className="text-3xl text-slate-700 leading-relaxed font-serif italic">
               "{description || "Experience the breathtaking beauty and unique culture of this incredible destination."}"
             </p>
           </div>
 
+          {/* Itinerary */}
           <div className="flex flex-col gap-12">
             <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-300 uppercase">The Itinerary</h2>
             <div className="flex flex-col gap-0">
               {[
-                { day: "01", title: "Arrival & Sunset Welcome", desc: "Arrive at the international airport where our private shuttle will greet you." },
-                { day: "02", title: "Local Discovery & Hidden Gems", desc: "A guided walking tour through the historic districts." },
-                { day: "03", title: "Adventure & Farewell", desc: "Choose between a sunrise hike or a morning coastal cruise." }
+                { day: "01", title: "Arrival & Welcome", desc: "Private airport transfer and luxury check-in." },
+                { day: "02", title: "Cultural Deep Dive", desc: "Expert-led walking tour of the local heritage sites." },
+                { day: "03", title: "Departure Adventure", desc: "Morning exploration before your afternoon flight." }
               ].map((item, idx) => (
                 <div key={idx} className="group flex gap-8 pb-12 last:pb-0 border-l-2 border-slate-100 pl-8 relative ml-3">
                   <div className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-white border-2 border-slate-200 group-hover:border-[#12a8bc] group-hover:bg-[#12a8bc] transition-all"></div>
@@ -191,52 +234,13 @@ export default function DestinationDetails({ params }) {
               ))}
             </div>
           </div>
-
-          <div className="h-px bg-slate-100 w-full"></div>
-
-          {/* Highlights Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { label: "Weather", value: "24°C / 75°F" },
-              { label: "Language", value: "English" },
-              { label: "Best Time", value: "May - Sept" },
-              { label: "Activity", value: "Moderate" }
-            ].map((stat, i) => (
-              <div key={i} className="flex flex-col gap-1">
-                <span className="text-[10px] font-black text-slate-300 tracking-[0.1em] uppercase">{stat.label}</span>
-                <span className="text-slate-900 font-bold tracking-tight uppercase text-sm">{stat.value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Reviews */}
-          <div className="flex flex-col gap-12 bg-slate-50 p-12 rounded-[2rem]">
-            <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">Guest Reviews</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {[
-                { name: "Sarah J.", city: "New York", text: "An absolutely transformative experience. Will definitely book again!", rating: 5 },
-                { name: "Marc K.", city: "Berlin", text: "Luxury meets authenticity. Truly world-class service.", rating: 5 }
-              ].map((rev, i) => (
-                <div key={i} className="flex flex-col gap-4">
-                  <div className="flex gap-1 text-yellow-400">
-                    {[...Array(rev.rating)].map((_, s) => <svg key={s} xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
-                  </div>
-                  <p className="text-slate-600 font-medium italic">"{rev.text}"</p>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{rev.name}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{rev.city}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* RIGHT COLUMN: STICKY SIDEBAR */}
+        {/* Right Column */}
         <div className="lg:col-span-1">
           <div className="sticky top-32 p-12 border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] bg-white flex flex-col gap-10 rounded-[2.5rem]">
             <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-black tracking-[0.2em] text-slate-300 uppercase">Estimated Starting From</span>
+              <span className="text-[10px] font-black tracking-[0.2em] text-slate-300 uppercase">Estimated Price</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-6xl font-bold text-slate-900">${price}</span>
                 <span className="text-slate-400 font-serif italic text-lg">/ person</span>
@@ -244,40 +248,54 @@ export default function DestinationDetails({ params }) {
             </div>
 
             <div className="flex flex-col gap-4">
-              <button className="w-full py-6 bg-[#12a8bc] text-white text-xs font-black tracking-[0.3em] uppercase hover:bg-cyan-600 transition-all shadow-xl shadow-cyan-500/20 active:scale-95">
+              <Button 
+                onClick={handleBooking}
+                isLoading={booking}
+                className="w-full py-8 bg-[#12a8bc] text-white text-[10px] font-black tracking-[0.3em] uppercase hover:bg-cyan-600 transition-all shadow-xl shadow-cyan-500/20 active:scale-95 rounded-none"
+              >
                 RESERVE NOW
-              </button>
+              </Button>
             </div>
 
-            {/* Admin Management Section */}
             <div className="pt-8 border-t border-slate-50 flex flex-col gap-4 text-center">
-               <span className="text-[9px] font-black tracking-[0.3em] text-slate-300 uppercase mb-1">Administrative Controls</span>
+               <span className="text-[9px] font-black tracking-[0.3em] text-slate-300 uppercase">Admin Management</span>
                <div className="grid grid-cols-2 gap-4">
-                 <button onClick={() => setIsModalOpen(true)} className="py-4 px-4 bg-slate-50 text-slate-500 text-[9px] font-black tracking-widest uppercase hover:bg-slate-900 hover:text-white transition-all border border-slate-100">
+                 <button onClick={() => setIsModalOpen(true)} className="py-4 bg-slate-50 text-slate-600 text-[9px] font-black tracking-widest uppercase hover:bg-slate-900 hover:text-white transition-all border border-slate-100">
                    EDIT INFO
                  </button>
-                 <button 
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="py-4 px-4 bg-red-50 text-red-500 text-[9px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all border border-red-50"
-                 >
+                 <button onClick={() => setIsDeleteModalOpen(true)} className="py-4 bg-red-50 text-red-600 text-[9px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all border border-red-50">
                    DELETE
                  </button>
                </div>
             </div>
-
-            <div className="flex items-center gap-5 pt-6 border-t border-slate-50">
-              <div className="flex -space-x-4 overflow-hidden">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="inline-block h-10 w-10 rounded-full ring-4 ring-white bg-slate-200"></div>
-                ))}
-              </div>
-              <span className="text-xs text-slate-400 font-bold italic underline decoration-[#12a8bc] decoration-2 underline-offset-4">
-                +42 explorers interested
-              </span>
-            </div>
           </div>
         </div>
       </section>
+
+      {/* -------------------- POPUPS & MODALS -------------------- */}
+
+      {/* STATUS SUCCESS POPUP (The "Stylish" Windows Pop up) */}
+      {showStatus && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xl"></div>
+          <div className="relative w-full max-w-md bg-white rounded-[3rem] p-16 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col items-center text-center gap-10 border border-slate-100">
+            <div className="w-28 h-28 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="animate-in slide-in-from-bottom-2 duration-500"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div className="flex flex-col gap-3">
+              <h2 className="text-4xl font-serif text-slate-900 leading-tight">
+                {showStatus === 'booking-success' ? "Trip Confirmed!" : showStatus === 'update-success' ? "Info Updated!" : "Trip Deleted!"}
+              </h2>
+              <p className="text-slate-500 font-medium text-lg">
+                {showStatus === 'booking-success' ? "Pack your bags, your adventure is waiting." : showStatus === 'update-success' ? "Your changes are now live across the platform." : "The destination has been removed from your gallery."}
+              </p>
+            </div>
+            <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
+               <div className="h-full bg-emerald-500 animate-progress duration-[2500ms]"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT MODAL */}
       {isModalOpen && (
@@ -310,7 +328,7 @@ export default function DestinationDetails({ params }) {
                 <Popover className="bg-white border border-slate-100 shadow-xl rounded-xl min-w-[200px] z-[110]">
                   <ListBox>
                     {["Beach", "Mountain", "City", "Adventure", "Cultural"].map(c => (
-                      <ListBoxItem key={c.toLowerCase()} id={c.toLowerCase()} className="p-3 hover:bg-slate-50 transition-colors font-bold uppercase text-[10px] tracking-widest text-slate-600">{c}</ListBoxItem>
+                      <ListBoxItem key={c.toLowerCase()} id={c.toLowerCase()} className="p-3 hover:bg-slate-50 font-bold uppercase text-[10px] tracking-widest text-slate-600">{c}</ListBoxItem>
                     ))}
                   </ListBox>
                 </Popover>
@@ -339,7 +357,7 @@ export default function DestinationDetails({ params }) {
         </div>
       )}
 
-      {/* CUSTOM DELETE CONFIRMATION MODAL */}
+      {/* DELETE MODAL */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsDeleteModalOpen(false)}></div>
@@ -347,28 +365,11 @@ export default function DestinationDetails({ params }) {
             <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
             </div>
-            
-            <div className="flex flex-col gap-3">
-              <h2 className="text-3xl font-serif text-slate-900 leading-tight">Delete Trip?</h2>
-              <p className="text-slate-500 font-medium px-4">
-                Are you sure you want to permanently remove <span className="text-slate-900 font-bold italic">"{destinationName}"</span>? This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <button 
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 py-4 text-xs font-black tracking-widest text-slate-400 hover:text-slate-900 transition-all uppercase order-2 sm:order-1"
-              >
-                KEEP IT
-              </button>
-              <button 
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 py-4 bg-red-600 text-white font-black tracking-[0.2em] text-[10px] rounded-full shadow-xl shadow-red-500/30 hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50 order-1 sm:order-2"
-              >
-                {deleting ? "DELETING..." : "YES, DELETE"}
-              </button>
+            <h2 className="text-3xl font-serif text-slate-900 leading-tight">Delete Trip?</h2>
+            <p className="text-slate-500 font-medium">This action cannot be undone.</p>
+            <div className="flex gap-4 w-full">
+              <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-4 text-xs font-black tracking-widest text-slate-400 hover:text-slate-900 transition-all uppercase">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-4 bg-red-600 text-white font-black tracking-[0.2em] text-[10px] rounded-full shadow-xl shadow-red-500/30 hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50">{deleting ? "DELETING..." : "YES, DELETE"}</button>
             </div>
           </div>
         </div>

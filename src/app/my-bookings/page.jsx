@@ -2,8 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
 
 export default function MyBookings() {
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -14,8 +18,16 @@ export default function MyBookings() {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (!isPending && !session) {
+      router.push("/login");
+    }
+  }, [isPending, session, router]);
+
+  useEffect(() => {
+    if (session) {
+      fetchBookings();
+    }
+  }, [session]);
 
   const fetchBookings = () => {
     fetch("http://localhost:5000/bookings")
@@ -60,7 +72,7 @@ export default function MyBookings() {
     }
   };
 
-  if (loading) {
+  if (isPending || loading || !session) {
     return (
       <div className="flex items-center justify-center min-h-screen p-20 font-serif text-3xl animate-pulse text-slate-300">
         Loading your adventures...

@@ -14,10 +14,12 @@ import {
   SelectValue,
   SelectIndicator
 } from "@heroui/react";
+import { useSession } from "@/lib/auth-client";
 
 export default function DestinationDetails({ params }) {
   const { id } = use(params);
   const router = useRouter();
+  const { data: session } = useSession();
   const [destination, setDestination] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -100,6 +102,11 @@ export default function DestinationDetails({ params }) {
   };
 
   const handleBooking = async () => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
     setBooking(true);
     const bookingData = {
       destinationId: destination._id,
@@ -253,7 +260,7 @@ export default function DestinationDetails({ params }) {
                 isLoading={booking}
                 className="w-full py-8 bg-[#12a8bc] text-white text-[10px] font-black tracking-[0.3em] uppercase hover:bg-cyan-600 transition-all shadow-xl shadow-cyan-500/20 active:scale-95 rounded-none"
               >
-                RESERVE NOW
+                {session ? "RESERVE NOW" : "LOGIN TO RESERVE"}
               </Button>
             </div>
 

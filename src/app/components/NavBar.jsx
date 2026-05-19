@@ -1,12 +1,20 @@
 "use client";
 
 import React from "react";
-import { Link } from "@heroui/react";
-import { usePathname } from "next/navigation";
+import { Link, Button } from "@heroui/react";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSession, signOut } from "@/lib/auth-client";
 
 export default function NavBar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   // Solid white background, drop shadow to separate it from the banner
   return (
@@ -67,46 +75,65 @@ export default function NavBar() {
         </div>
 
         {/* Right Content */}
-        <ul className="flex items-center gap-6 ml-auto">
-          <li className="hidden md:flex">
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 text-sm font-medium transition-colors text-foreground hover:text-primary"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Profile
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/login"
-              className="text-sm font-medium transition-colors text-foreground hover:text-primary"
-            >
-              Login
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/signup"
-              className="text-sm font-medium transition-colors text-foreground hover:text-primary"
-            >
-              Sign Up
-            </Link>
-          </li>
-        </ul>
+        <div className="flex items-center gap-6 ml-auto">
+          {isPending ? (
+            <div className="w-20 h-6 bg-gray-200 animate-pulse rounded"></div>
+          ) : session ? (
+            <ul className="flex items-center gap-6">
+              <li className="hidden md:flex">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 text-sm font-medium transition-colors text-foreground hover:text-primary"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  {session.user.name || "Profile"}
+                </Link>
+              </li>
+              <li>
+                <Button 
+                  size="sm" 
+                  color="danger" 
+                  variant="flat" 
+                  onPress={handleLogout}
+                >
+                  Logout
+                </Button>
+              </li>
+            </ul>
+          ) : (
+            <ul className="flex items-center gap-6">
+              <li>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium transition-colors text-foreground hover:text-primary"
+                >
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/signup"
+                  className="text-sm font-medium transition-colors text-foreground hover:text-primary"
+                >
+                  Sign Up
+                </Link>
+              </li>
+            </ul>
+          )}
+        </div>
       </div>
     </nav>
   );

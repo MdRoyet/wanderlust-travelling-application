@@ -3,20 +3,32 @@
 import { useState } from "react";
 import { Input, Button, Card, Link } from "@heroui/react";
 import NextLink from "next/link";
+import { signIn } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Integrate Better Auth signIn
-    console.log("Login with", { email, password });
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    
+    await signIn.email(
+      { email, password },
+      {
+        onSuccess: () => {
+          setIsLoading(false);
+          router.push("/");
+        },
+        onError: (ctx) => {
+          setIsLoading(false);
+          alert(ctx.error.message);
+        }
+      }
+    );
   };
 
   return (

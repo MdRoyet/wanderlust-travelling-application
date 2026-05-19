@@ -1,6 +1,7 @@
 import React from "react";
 import Banner from "./components/Banner";
 import Destinations from "./components/Destinations";
+import DestinationCard from "./components/DestinationCard";
 
 export default function Home() {
   return (
